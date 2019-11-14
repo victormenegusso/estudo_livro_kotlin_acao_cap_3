@@ -1,31 +1,31 @@
 # capitulo 3 - Definindo e chamando funções
 
 Tópicos
-- Coleções
-- Funções 
+- coleções
+- funções 
+  - funções de nível superior
   - argumentos nomeados
   - valores default
-- Extensões
-- Funções infixa
-- Novas funções para String e Expressões regulares
+- propriedades de nível superior  
+- extensões
+- funções infixa
+- novas funções para String e Expressões regulares
 - estruturação de código com funções de nivel superior, funções locais e propriedades.
 
 
 ## Coleções
  
-Kotlin não tem seu proprio conjunto de classes de coleção, ele utiliza as classes de coleção do Java. Assim não é necessário converter as coleções kotlin para java e vice versa quando estamos com interação de código
+Kotlin não tem seu proprio conjunto de classes de coleção, ele utiliza as classes de coleção do Java. 
+Assim não é necessário converter as coleções em Kotlin para java e vice versa quando estamos com interação de código
+
 ```kotlin
-val set = hashSetOf(1, 2, 3)
-//class java.util.HashSet    
+val set = hashSetOf(1, 2, 3) //class java.util.HashSet    
 
-val list = arrayListOf(1, 7, 53)
-//class java.util.ArrayList
+val list = arrayListOf(1, 7, 53) //class java.util.ArrayList
 
-val map = hashMapOf(1 to "one", 7 to "seven", 53 to "fifty-three")
-//class java.util.HashMap
+val map = hashMapOf(1 to "one", 7 to "seven", 53 to "fifty-three") //class java.util.HashMap
 
-var strings = listOf("first", "second", "fourteenth")
-//class java.util.Arrays$ArrayList
+var strings = listOf("first", "second", "fourteenth") //class java.util.Arrays$ArrayList
 ```
 
 Alguns pontos sobre o código acima:
@@ -33,7 +33,7 @@ Alguns pontos sobre o código acima:
  - listOf é imutavel, tanto que é um Array
  - esse 'to' não é um comando kotlin e sim uma função, que vamos ver mais adiante
 
-### Exemplo de novos metódos para as classes de coleção
+O Kotlin adiciona algumas funções nas coleções do Java
 
 Ultimo elemento da lista
 ```kotlin
@@ -53,22 +53,88 @@ println(numbers.max())
 - oque são essas funções novas?
 - como chamo elas do java
 
-## Funções
+## Funçoes
 
-### Argumentos nomeados
+Abaixo um exemplo de função que formata uma Coleção em String, vamos usar ela como exemplo nos proximos passos
 
-Funções com muitos paramentros, podem deixar sua chamadas confusas.
-
-*Exemplo 1:*
-
-Assinatura da função
 ```kotlin
 fun <T> joinToString(collection: Collection<T>,
                      separator: String,
                      prefix: String,
                      postfix: String
-) : String
-``` 
+) : String {
+    val result = StringBuilder(prefix)
+    for ((index, element) in collection.withIndex()) {
+        if(index > 0) result.append(separator)
+        result.append(element)
+    }
+    result.append(postfix)
+    return result.toString()
+}
+```
+
+### Funções de nível superior
+
+Em Kotlin uma função não precisa ser declarada dentro de uma classe (como no exemplo acima), 
+isso é chamado de funções de nível superior. 
+
+No Kotlin essas funções são *membros do pacote e não do arquivo*, logo:
+- se vamos chamar ela de outro pacote, temos que a importar elas.
+- não posso ter funções com a mesma assinatura no mesmo pacote, mesmo que estejam no mesmo arquivo
+
+Essas funções nos ajudam a evitar as famosas classes `...Utils` até mesmo a `Colllections`,  
+que só criamos a classe para armazenar as funções.
+
+#### chamando a função apartir de outro arquivo Kotlin ( em outro pacote )
+
+Considerando que a função `joinToString` esta no arquivo `funcoes.kt` no pacote `exemplos.kotlin.funcoes`, e 
+vamos chamar ela de outro arquivo em outro pacote temos que realizar o `import`
+
+```kotlin
+package exemplos.kotlin.exec
+
+import exemplos.kotlin.funcoes.joinToString
+
+fun main() {
+    val list = arrayListOf(1, 7, 53)
+    joinToString(list)
+}
+```
+
+#### chamando a função apartir do Java
+
+Todo código para executar na JVM, deve estar dentro de uma Classe, logo no fim das contas
+o Kotlin, na hora de compilar o arquivo com funções de nível superior ele cria uma classe com o 
+nome do arquivo + 'Kt'
+
+```java
+package exemplos.java.funcoes;
+
+import exemplos.kotlin.funcoes.FuncoesKt;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+public class FuncoesJava {
+    public static void main(String[] args) {
+        ArrayList<Integer> list = new ArrayList<>(Arrays.asList(1,2,3));
+        String resultado = FuncoesKt.joinToString(list,",","[","]");
+        System.out.println(resultado);
+    }
+}
+```
+
+Podemos alterar o nome da classe usando o ` @JvmName` colocando no inicio do arquivo
+Exemplo
+```kotlin
+@file:JvmName("NomeQueEuQuero")
+....
+....
+```
+
+### Argumentos nomeados
+
+Funções com muitos paramentros, podem deixar sua chamadas confusas.
+Vamos usar como exemplo a função `joinToString`
 
 Exemplo de chamadas
 ```kotlin
@@ -78,8 +144,10 @@ joinToString(list, " ", " ", ".")
 ```
 
 A IDE pode ate te ajudar mostrando o nome dos parametros, mas imagine avaliando um PR... no bitbucket
+
 Para resolver este problema, podemos fazer a chamada especifiando os argumentos:
- ```kotlin
+
+```kotlin
 joinToString(list, separator = " ", prefix = " ", postfix = ".")
 ```
 
@@ -89,9 +157,11 @@ Observações:
 - No Java, para chamar essa função do Kotlin, temos que chamar passando todos os parametros. ( mais adiante exemplos)
 
 ### Valores default
-Em programas java, é muito comum sobrecarga de métodos
+
+Em programas Java, é muito comum sobrecarga de métodos
 
 Exemplo um método de venda, aonde temos a opção de passar o CPF
+
 ```java
 public boolean vender(List<Produto> produtos) {
     return vender(produtos, "");
@@ -104,6 +174,7 @@ public boolean vender(List<Produto> produtos, String cpf) {
 Isso já tras poluição de código... e agora imagine colocando o javadoc
 
 Em kotlin poderiamos fazer:
+
 ```kotlin
 fun vender(produtos: Collection<Produto>, cpf: String = "") : boolean
 ```
@@ -118,6 +189,7 @@ fun <T> joinToString(collection: Collection<T>,
 ```
 
 Exemplo de chamadas
+
 ```kotlin
 joinToString(list)
 joinToString(list, "")
@@ -125,12 +197,13 @@ joinToString(list, prefix = " ", postfix = ".")
 ```
 
 Observações:
-
 - Usando a sintaxe de chamada sem nomear os parametros, apenas os ultimos parametros não devem ser especificados
 - Usando a sintaxe de chamada nomeando os parametros, a ordem não importa 
 
 #### valores default no java
 Como o Java não trabalha com valores default, o compilador deveria gerar as funções com sobrecarga, para isso devemos usar o `@JvmOverloads` acima do método
+
+## Propriedades de Nível Superior
 
 ## Funções de extensão 
 

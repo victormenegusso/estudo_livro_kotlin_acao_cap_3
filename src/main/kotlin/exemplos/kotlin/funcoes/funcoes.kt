@@ -1,4 +1,4 @@
-package exemplos.kotlin
+package exemplos.kotlin.funcoes
 /*
 fun <T> joinToString(collection: Collection<T>,
                      separator: String,

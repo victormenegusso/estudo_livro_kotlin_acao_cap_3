@@ -1,6 +1,6 @@
 package exemplos.java.funcoes;
 
-import exemplos.kotlin.FuncoesKt;
+import exemplos.kotlin.funcoes.FuncoesKt;
 import java.util.ArrayList;
 import java.util.Arrays;
 
