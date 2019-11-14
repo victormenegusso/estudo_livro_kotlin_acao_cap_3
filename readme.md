@@ -9,8 +9,8 @@ Tópicos
 - propriedades de nível superior  
 - extensões
 - funções infixa
-- novas funções para String e Expressões regulares
-- estruturação de código com funções de nivel superior, funções locais e propriedades.
+- strings
+- funções locais.
 
 
 ## Coleções
@@ -325,37 +325,116 @@ val list = arrayListOf(1, 7, 53)
 println(list.joinToString("; ", "(", ")"))
 ```
 
-TODO - Falar do as
-
 ## Varargs
     
-funções que aceitam um número arbitrário de argumentos
+funções que aceitam um número arbitrário de argumentos, No java é definido pelos 
+`Tipo...` exemplo: `String...`
 
-em kotlin
 ```kotlin
 fun listOf<T>(vararg values: T): List<T> { ... }
 ```
-
-```java
- ...
-```
-
-Colocar um exemplo que parece que o kotlin perde, pois tem que colocar o * mas ai tem o pulo do gato que vc pode passar parametros a mais.
-
+TODO - Colocar um exemplo que parece que o kotlin perde, pois tem que colocar o * mas ai tem o pulo do gato que vc pode passar parametros a mais.
 
 ## chamadas infixa
 
--- infix
--- par
--- destruction
+No exemplo de criação de mapa:
+```kotlin
+val map = hashMapOf(1 to "one", 7 to "seven", 53 to "fifty-three")
+```
 
-## Expressões regulares
-lerrr
+o `to` é uma função infixa, que nada mais é que uma função de apenas 1 parametro
+fica parecido com um operador.
 
-## 3.6 Funçoes locais muitas duvidas
+Exemplo:
+```kotlin
+infix fun String.concatenar(t: String) : String {
+    return this + t
+}
 
+fun main() {
+    
+    println( "A" concatenar "B" )
 
-## Resumo
+    println( "A".concatenar("B") )
+}
+```
+
+## Strings
+
+String em Kotlin é exatamente igual a String em Java
+
+- Novas Funções ( extensão )
+- Oculta funções confusas (exemplo um `"t.e.x.t.o".split(".")` onde o `.`) é tratado como uam expressão regular, quem nunca teve esse problema com java? 
+- Método que aceita uma expressão regular, exige um parametro tipo `Regex`
+
+```kotlin
+// tendo escape de String ( como colocamos \ antes do . para não usar ele como coringa 
+println( "12.345-6.A".split("\\.|-".toRegex() ) ) //[12, 345, 6, A]
+
+// sem escape, usando aspas triplas
+println( "12.345-6.A".split("""\.|-""".toRegex() ) ) //[12, 345, 6, A]
+
+// outra forma
+println("12.345-6.A".split(".", "-")) //[12, 345, 6, A]
+```
+
+Strings multinha com aspas triplas
+
+```kotlin
+    val textao = """Eu quero Café,
+todo dia
+toda hora
+nice
+"""
+
+    println(textao)
+```
+
+## 3.6 Funçoes locais
+
+Quando temos funções muito grandes, é recomentado a quebrar em funções menores,
+mas isso pode acabar gerando uma poluição no código enorme.
+
+Para isso, o Kotlin tras uma maneira aninhar funções.
+
+Exemplo uma função no Banco de Dados que vai Validar os dados de entrada,
+e salvar o usuário no banco de dados
+
+```kotlin
+class User(val id: Int, val name: String, val address: String)
+
+fun saveUser(user: User) {
+    if(user.name.isEmpty()) {
+        throw IllegalArgumentException("Usuário: ${user.id} esta com nome vazio")
+    }
+    if(user.address.isEmpty()) {
+        throw IllegalArgumentException("Usuário: ${user.id} esta com endereço vazio")
+    }
+
+    // salva no banco
+}
+```
+
+podemos reduzir para:
+
+```kotlin
+class User(val id: Int, val name: String, val address: String)
+
+fun saveUser(user: User) {
+    fun validate(value: String, fieldName: String) {
+        if(value.isEmpty()) {
+            throw IllegalArgumentException("Usuário: ${user.id} esta com $fieldName vazio")
+        }
+    }
+
+    validate(user.name, "Nome")
+    validate(user.address, "Endereco")
+
+    // salva no banco
+}
+```
+
+# Resumo
 
 - kotlin não define suas proprias bibliotecas de coleção, ele reutiliza a do java, adicionando métodos atraves de extensões.
 - parametros default, ajuda a reduzir as sobrecarga de métodos
