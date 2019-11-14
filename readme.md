@@ -85,7 +85,7 @@ No Kotlin essas funções são *membros do pacote e não do arquivo*, logo:
 Essas funções nos ajudam a evitar as famosas classes `...Utils` até mesmo a `Colllections`,  
 que só criamos a classe para armazenar as funções.
 
-#### chamando a função apartir de outro arquivo Kotlin ( em outro pacote )
+#### Chamando a função apartir de outro arquivo Kotlin ( em outro pacote )
 
 Considerando que a função `joinToString` esta no arquivo `funcoes.kt` no pacote `exemplos.kotlin.funcoes`, e 
 vamos chamar ela de outro arquivo em outro pacote temos que realizar o `import`
@@ -101,7 +101,7 @@ fun main() {
 }
 ```
 
-#### chamando a função apartir do Java
+#### Chamando a função apartir do Java
 
 Todo código para executar na JVM, deve estar dentro de uma Classe, logo no fim das contas
 o Kotlin, na hora de compilar o arquivo com funções de nível superior ele cria uma classe com o 
@@ -205,9 +205,127 @@ Como o Java não trabalha com valores default, o compilador deveria gerar as fun
 
 ## Propriedades de Nível Superior
 
+Podemos declarar propriedades de nível superior
+
+```kotlin
+var opCount = 0
+
+fun performOperation() {
+    opCount++
+    // ....
+}
+
+fun reportOperationCount() {
+    println("Operation performed $opCount times")
+}
+
+// colocando o const é semelhate a: public static final String....
+const val OPERATION_SYSTEM_VERSION = "1.0"
+```
+
+### Acessando elas via Java
+
+```java
+package exemplos.java.funcoes;
+
+import exemplos.kotlin.propriedades.OperacaoKt;
+
+public class Propriedades {
+
+    public static void main(String[] args) {
+
+        // foi gerado o get/set para var opCount
+        OperacaoKt.getOpCount();
+        OperacaoKt.setOpCount(1);
+
+        // os métodos
+        OperacaoKt.performOperation();
+        OperacaoKt.reportOperationCount();
+
+        // foi gerado o get apenas para o val
+        System.out.println( OperacaoKt.OPERATION_SYSTEM_VERSION );
+    }
+}
+```
+
 ## Funções de extensão 
 
-Os novos metodos oferecidos pelo kotlin nas coleção, são funções de extensão.
+Conceitualmente, uma função de extensão é uma função que pode ser chamada como metro de uma classe, mesmo 
+sendo definida fora dela.
+
+Exemplo, vamos adicionar uma função para String, que pega o ultimo char
+
+```kotlin
+package exemplos.kotlin.extensoes.strings
+
+fun String.lastChar(): Char = this.get(this.length-1)
+```
+
+Chamando função no Kotlin
+```kotlin
+import exemplos.kotlin.extensoes.strings.lastChar
+
+fun main() {
+    println("texto".lastChar())
+}
+```
+
+- O nome da classe antes do nome do método é chamado de *tipo receptor*
+- O valor no qual a função é chamada ( `this ) é chamado de *objeto receptor*
+- Funções de extensão não permite, que o encapsulamento seja quebrado.
+- A função de extensão não é visivel a todo o projeto, ela deve ser importada.
+- Podemos extender qualquer classe, indiferente da linguagem que foi escrita.
+
+*Observações *
+- As novas funções oferecidas pelo Kotlin nas coleções, são funções de extensão.
+
+### chamando funções de extensão via Java
+
+Internamente, uma função de extensão é um método estático que aceita o objeto
+receptor como seu primeiro argumento
+
+```java
+package exemplos.java.funcoes;
+
+import exemplos.kotlin.extensoes.strings.StringUtilKt;
+
+public class ExtensoesJava {
+    public static void main(String[] args) {
+
+        String texto = "NICE";
+
+        System.out.println( StringUtilKt.lastChar(texto) );
+    }
+}
+```
+
+### Deixando o 'joinToString' como extensão da collection
+
+```kotlin
+package exemplos.kotlin.extensoes.strings
+
+fun <T> Collection<T>.joinToString(
+                     separator: String = "",
+                     prefix: String = "",
+                     postfix: String = ""
+) : String {
+    val result = StringBuilder(prefix)
+    for ((index, element) in this.withIndex()) {
+        if(index > 0) result.append(separator)
+        result.append(element)
+    }
+    result.append(postfix)
+    return result.toString()
+}
+```
+
+Executando
+```kotlin
+val list = arrayListOf(1, 7, 53)
+println(list.joinToString("; ", "(", ")"))
+```
+
+TODO - Falar do as
 
 ## Varargs
     
